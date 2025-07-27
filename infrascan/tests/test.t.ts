@@ -42,8 +42,8 @@ describe("construction_transparency - create_project", () => {
         project: projectPda,
         authority: provider.wallet.publicKey,
         contractor: contractor.publicKey,
-        systemProgram: anchor.web3.SystemProgram.programId,
       })
+      .signers([])
       .rpc();
 
     // Fetch the on-chain account
