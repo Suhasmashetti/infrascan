@@ -1,0 +1,19 @@
+{
+  "name": "infrascan",
+  "version": "1.0.0",
+  "description": "🏗️ Construction Transparency on Solana A decentralized app on Solana for bringing transparency and accountability to public works. By creating an immutable, on-chain log of project details, materials, and verifications, this platform aims to combat corruption and ensure construction quality.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "mocha -r ts-node/register \"infrascan/tests/**/*.ts\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.31.1"
+  }
+}

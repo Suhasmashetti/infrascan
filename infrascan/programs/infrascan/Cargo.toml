@@ -22,6 +22,7 @@ custom-panic = []
 
 [dependencies]
 anchor-lang = "0.31.1"
+cargo-expand = "1.0.114"
 
 
 [lints.rust]

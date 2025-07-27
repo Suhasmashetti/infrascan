@@ -5,12 +5,15 @@ declare_id!("BMWb6XBNgos6EnTrXrzzDXEZoQNFcz2kFHjgH2Lcubtm");
 #[program]
 pub mod construction_transparency {
     use super::*;
+
     pub fn create_project(
         ctx: Context<CreateProject>,
+        project_id: u64,
         name: String,
         location: String,
     ) -> Result<()> {
         let project = &mut ctx.accounts.project;
+        project.project_id = project_id;
         project.authority = ctx.accounts.authority.key();
         project.name = name;
         project.location = location;
@@ -23,6 +26,7 @@ pub mod construction_transparency {
             authority: project.authority,
             contractor: project.contractor,
             name: project.name.clone(),
+            project_id,
         });
 
         Ok(())
@@ -105,18 +109,19 @@ pub mod construction_transparency {
 }
 
 #[derive(Accounts)]
+#[instruction(project_id: u64)]
 pub struct CreateProject<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8 + 1024,
-        seeds = [b"project", authority.key().as_ref()],
+        space = 8 + 1024, // Initial space for the account. Adjust if more data is expected.
+        seeds = [b"project", authority.key().as_ref(), &project_id.to_le_bytes()],
         bump
     )]
     pub project: Account<'info, ConstructionProject>,
     #[account(mut)]
     pub authority: Signer<'info>,
-    /// CHECK: This is just a pubkey stored in the project data. We do not read or write to this account.
+    /// CHECK: This is just a pubkey stored in the project data.
     pub contractor: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
 }
@@ -125,8 +130,8 @@ pub struct CreateProject<'info> {
 pub struct AuthorityUpdate<'info> {
     #[account(
         mut,
-        has_one = authority,
-        seeds = [b"project", authority.key().as_ref()],
+        has_one = authority, // Ensures the authority signing is the one linked to the project
+        seeds = [b"project", authority.key().as_ref(), &project.project_id.to_le_bytes()],
         bump
     )]
     pub project: Account<'info, ConstructionProject>,
@@ -137,8 +142,8 @@ pub struct AuthorityUpdate<'info> {
 pub struct ContractorUpdate<'info> {
     #[account(
         mut,
-        has_one = contractor,
-        seeds = [b"project", project.authority.as_ref()],
+        has_one = contractor, // Ensures the contractor signing is the one linked to the project
+        seeds = [b"project", project.authority.as_ref(), &project.project_id.to_le_bytes()],
         bump
     )]
     pub project: Account<'info, ConstructionProject>,
@@ -147,6 +152,7 @@ pub struct ContractorUpdate<'info> {
 
 #[account]
 pub struct ConstructionProject {
+    pub project_id: u64,
     pub authority: Pubkey,
     pub name: String,
     pub location: String,
@@ -159,10 +165,10 @@ pub struct ConstructionProject {
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, InitSpace)]
 pub struct MaterialRecord {
-    #[max_len(50)]
+    #[max_len(50)] // Max length for material name
     pub name: String,
     pub quantity: u32,
-    #[max_len(20)]
+    #[max_len(20)] // Max length for quality grade
     pub quality_grade: String,
     pub verified_by: Option<Pubkey>,
 }
@@ -173,6 +179,7 @@ pub struct ProjectCreated {
     pub authority: Pubkey,
     pub contractor: Pubkey,
     pub name: String,
+    pub project_id: u64,
 }
 
 #[event]
